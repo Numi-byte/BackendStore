@@ -127,4 +127,16 @@ export class MailService {
 
     console.log('Order confirmation email sent: %s', info.messageId);
   }
+
+
+  async sendPasswordResetEmail(to: string, token: string) {
+  const resetLink = `http://your-frontend.com/reset-password?token=${token}`;
+  await this.transporter.sendMail({
+    from: '"Furniture Shop" <no-reply@furniture.com>',
+    to,
+    subject: 'Reset your password',
+    html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`
+  });
+}
+
 }
