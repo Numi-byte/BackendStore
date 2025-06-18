@@ -28,6 +28,22 @@ export class MailService {
     console.log('Welcome email sent: %s', info.messageId);
   }
 
+  async sendNewsletterWelcomeEmail(to: string) {
+  const info = await this.transporter.sendMail({
+    from: '"Furniture Shop" <no-reply@furniture.com>',
+    to,
+    subject: 'Thanks for subscribing to our newsletter!',
+    text: 'We’re excited to have you on board. Stay tuned for updates and exclusive offers!',
+    html: `
+      <p>We’re excited to have you on board.</p>
+      <p>Stay tuned for updates and exclusive offers!</p>
+      <p>If you didn’t subscribe, please ignore this email.</p>
+    `,
+  });
+  console.log('Newsletter welcome email sent: %s', info.messageId);
+}
+
+
   /** generate a PDF buffer for the given order */
   private generateInvoicePdf(order: {
     id: number;
