@@ -63,3 +63,14 @@ model OrderStatusHistory {
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
+
+model visitor {
+  id         Int      @id @default(autoincrement())
+  visitorId  String
+  ip         String
+  country    String?
+  region     String?
+  city       String?
+  userAgent  String? 
+  createdAt  DateTime @default(now())
+}

@@ -28,13 +28,16 @@
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^6.10.0",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "geoip-lite": "^1.4.10",
     "nodemailer": "^7.0.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.17.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "stream-buffers": "^3.0.3"
+    "stream-buffers": "^3.0.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -45,6 +48,7 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
     "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
