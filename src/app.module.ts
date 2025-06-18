@@ -5,6 +5,7 @@ import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
 import { PrismaService } from './prisma.service';
 import { MailService } from './mail/mail.service';
+import { SubscriberModule } from './subscriber/subscriber.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { MailService } from './mail/mail.service';
     AuthModule,
     ProductModule,
     OrderModule,
+    SubscriberModule, 
   ],
   providers: [PrismaService, MailService],
   exports: [MailService],
