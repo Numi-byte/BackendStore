@@ -32,4 +32,20 @@ getTopProductsSold() {
 getRevenueSummary() {
   return this.adminService.getRevenueSummary();
 }
+
+@Get('orders/revenue-by-day')
+getRevenueByDay() {
+  return this.adminService.getRevenueByDay();
+}
+
+@Get('orders/revenue-by-month')
+getRevenueByMonth() {
+  return this.adminService.getRevenueByMonth();
+}
+
+@Get('orders/revenue-by-year')
+getRevenueByYear() {
+  return this.adminService.getRevenueByYear();
+}
+
 }

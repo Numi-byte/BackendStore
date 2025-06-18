@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
@@ -63,5 +64,33 @@ async getRevenueSummary() {
     orderCount: allOrders.length,
   };
 }
+
+ async getRevenueByDay() {
+    return this.groupRevenueByFormat('YYYY-MM-DD');
+  }
+
+  /** Revenue grouped by month */
+  async getRevenueByMonth() {
+    return this.groupRevenueByFormat('YYYY-MM');
+  }
+
+  /** Revenue grouped by year */
+  async getRevenueByYear() {
+    return this.groupRevenueByFormat('YYYY');
+  }
+
+  /** Helper: group revenue by date format */
+  private async groupRevenueByFormat(format: string) {
+    const results = await this.prisma.$queryRaw<
+      { period: string; total: number }[]
+    >(Prisma.sql`
+      SELECT to_char("createdAt", ${format}) AS period, SUM(total)::float AS total
+      FROM "Order"
+      GROUP BY period
+      ORDER BY period;
+    `);
+
+    return results;
+  }
 
 }
