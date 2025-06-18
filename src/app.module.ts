@@ -6,6 +6,7 @@ import { OrderModule } from './order/order.module';
 import { PrismaService } from './prisma.service';
 import { MailService } from './mail/mail.service';
 import { SubscriberModule } from './subscriber/subscriber.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SubscriberModule } from './subscriber/subscriber.module';
     ProductModule,
     OrderModule,
     SubscriberModule, 
+    AdminModule,
   ],
   providers: [PrismaService, MailService],
   exports: [MailService],
