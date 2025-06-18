@@ -9,6 +9,24 @@ export class OrderService {
     private mail: MailService,
   ) {}
 
+  async updateStatus(orderId: number, status: string) {
+  const order = await this.prisma.order.update({
+    where: { id: orderId },
+    data: { status },
+    include: { items: true },
+  });
+
+  const user = await this.prisma.user.findUnique({
+    where: { id: order.userId },
+  });
+
+  if (user) {
+    await this.mail.sendOrderStatusUpdateEmail(user.email, order);
+  }
+
+  return order;
+}
+
   async create(
     userId: number,
     items: { productId: number; quantity: number }[]

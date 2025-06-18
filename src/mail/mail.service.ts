@@ -42,6 +42,16 @@ export class MailService {
   });
   console.log('Newsletter welcome email sent: %s', info.messageId);
 }
+    async sendOrderStatusUpdateEmail(to: string, order: any) {
+        const info = await this.transporter.sendMail({    
+        from: '"Furniture Shop" <no-reply@furniture.com>',
+        to,
+        subject: `Your order #${order.id} status updated`,
+        text: `Your order status is now: ${order.status}`,
+        html: `<p>Your order <strong>#${order.id}</strong> status is now: <strong>${order.status}</strong>.</p>`,
+        });
+            console.log('Order status update email sent: %s', info.messageId);
+    }
 
 
   /** generate a PDF buffer for the given order */
