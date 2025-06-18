@@ -49,18 +49,29 @@ getRevenueByYear() {
 }
 
 @Get('visitors')
-listVisitors() {
-  return this.adminService.listVisitors();
+listVisitors(
+  @Query('page') page = '1',
+  @Query('limit') limit = '50',
+  @Query('from') from?: string,
+  @Query('to') to?: string
+) {
+  return this.adminService.listVisitors(+page, +limit, from, to);
 }
 
 @Get('visitors/by-country')
-visitorsByCountry() {
-  return this.adminService.visitorsByCountry();
+visitorsByCountry(
+  @Query('from') from?: string,
+  @Query('to') to?: string
+) {
+  return this.adminService.visitorsByCountry(from, to);
 }
 
 @Get('visitors/by-user-agent')
-visitorsByUserAgent() {
-  return this.adminService.visitorsByUserAgent();
+visitorsByUserAgent(
+  @Query('from') from?: string,
+  @Query('to') to?: string
+) {
+  return this.adminService.visitorsByUserAgent(from, to);
 }
 
 }

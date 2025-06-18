@@ -93,37 +93,61 @@ async getRevenueSummary() {
     return results;
   }
 
-  /** List all visitor logs */
-async listVisitors() {
+async listVisitors(page = 1, limit = 50, from?: string, to?: string) {
+  const where: any = {};
+  
+  if (from || to) {
+    where.createdAt = {};
+    if (from) where.createdAt.gte = new Date(from);
+    if (to) where.createdAt.lte = new Date(to);
+  }
+
   return this.prisma.visitor.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
-    take: 100, // limit to 100 latest
+    skip: (page - 1) * limit,
+    take: limit,
   });
 }
 
-/** Group by country */
-async visitorsByCountry() {
-  return this.prisma.$queryRaw`
-    SELECT country, COUNT(*)::int as count
+
+async visitorsByCountry(from?: string, to?: string) {
+  const conditions: string[] = [`"country" IS NOT NULL`];
+
+  if (from) conditions.push(`"createdAt" >= CAST('${from}' AS timestamp)`);
+  if (to)   conditions.push(`"createdAt" <= CAST('${to}' AS timestamp)`);
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const query = `
+    SELECT "country", COUNT(*)::int as count
     FROM "visitor"
-    WHERE country IS NOT NULL
-    GROUP BY country
+    ${whereClause}
+    GROUP BY "country"
     ORDER BY count DESC
   `;
+
+  return this.prisma.$queryRawUnsafe(query);
 }
 
-/** Group by userAgent (browser string) */
-async visitorsByUserAgent() {
-  return this.prisma.$queryRaw`
+async visitorsByUserAgent(from?: string, to?: string) {
+  const conditions: string[] = [`"userAgent" IS NOT NULL`];
+
+  if (from) conditions.push(`"createdAt" >= CAST('${from}' AS timestamp)`);
+  if (to)   conditions.push(`"createdAt" <= CAST('${to}' AS timestamp)`);
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const query = `
     SELECT "userAgent", COUNT(*)::int as count
     FROM "visitor"
-    WHERE "userAgent" IS NOT NULL
+    ${whereClause}
     GROUP BY "userAgent"
     ORDER BY count DESC
   `;
+
+  return this.prisma.$queryRawUnsafe(query);
 }
-
-
 
 
 }
