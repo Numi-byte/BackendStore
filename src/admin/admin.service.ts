@@ -93,4 +93,37 @@ async getRevenueSummary() {
     return results;
   }
 
+  /** List all visitor logs */
+async listVisitors() {
+  return this.prisma.visitor.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 100, // limit to 100 latest
+  });
+}
+
+/** Group by country */
+async visitorsByCountry() {
+  return this.prisma.$queryRaw`
+    SELECT country, COUNT(*)::int as count
+    FROM "visitor"
+    WHERE country IS NOT NULL
+    GROUP BY country
+    ORDER BY count DESC
+  `;
+}
+
+/** Group by userAgent (browser string) */
+async visitorsByUserAgent() {
+  return this.prisma.$queryRaw`
+    SELECT "userAgent", COUNT(*)::int as count
+    FROM "visitor"
+    WHERE "userAgent" IS NOT NULL
+    GROUP BY "userAgent"
+    ORDER BY count DESC
+  `;
+}
+
+
+
+
 }

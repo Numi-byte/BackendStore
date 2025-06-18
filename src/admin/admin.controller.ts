@@ -48,4 +48,19 @@ getRevenueByYear() {
   return this.adminService.getRevenueByYear();
 }
 
+@Get('visitors')
+listVisitors() {
+  return this.adminService.listVisitors();
+}
+
+@Get('visitors/by-country')
+visitorsByCountry() {
+  return this.adminService.visitorsByCountry();
+}
+
+@Get('visitors/by-user-agent')
+visitorsByUserAgent() {
+  return this.adminService.visitorsByUserAgent();
+}
+
 }
