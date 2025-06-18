@@ -25,4 +25,43 @@ export class AdminService {
       orderBy: { createdAt: 'desc' },
     });
   }
+  /** Top products sold (by quantity) */
+async getTopProductsSold(limit = 5) {
+  const aggregates = await this.prisma.orderItem.groupBy({
+    by: ['productId'],
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: 'desc' } },
+    take: limit,
+  });
+
+  // Join product details
+  const productIds = aggregates.map(a => a.productId);
+  const products = await this.prisma.product.findMany({
+    where: { id: { in: productIds } },
+  });
+
+  return aggregates.map(a => {
+    const product = products.find(p => p.id === a.productId);
+    return {
+      productId: a.productId,
+      title: product?.title || 'Unknown',
+      totalSold: a._sum.quantity,
+    };
+  });
+}
+
+/** Revenue summary (sum of orders total) */
+async getRevenueSummary() {
+  const allOrders = await this.prisma.order.findMany({
+    select: { total: true, createdAt: true },
+  });
+
+  const totalRevenue = allOrders.reduce((sum, o) => sum + o.total, 0);
+
+  return {
+    totalRevenue,
+    orderCount: allOrders.length,
+  };
+}
+
 }

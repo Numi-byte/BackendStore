@@ -21,4 +21,15 @@ export class AdminController {
   listOrders(@Query('status') status?: string) {
     return this.adminService.listOrders(status);
   }
+  /** GET /admin/orders/top-products */
+@Get('orders/top-products')
+getTopProductsSold() {
+  return this.adminService.getTopProductsSold();
+}
+
+/** GET /admin/orders/revenue-summary */
+@Get('orders/revenue-summary')
+getRevenueSummary() {
+  return this.adminService.getRevenueSummary();
+}
 }
