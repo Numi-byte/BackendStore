@@ -31,4 +31,10 @@ export class OrderController {
   ) {
     return this.orderService.updateStatus(+id, status);
   }
+  @Get(':id/status-history')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  getStatusHistory(@Param('id') id: string) {
+  return this.orderService.findStatusHistory(+id);
+}
 }

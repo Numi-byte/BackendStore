@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { MailService } from '../mail/mail.service';
 
@@ -9,12 +9,27 @@ export class OrderService {
     private mail: MailService,
   ) {}
 
+
   async updateStatus(orderId: number, status: string) {
+  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered'];
+  if (!allowedStatuses.includes(status)) {
+    throw new BadRequestException(`Invalid status: ${status}`);
+  }
+
   const order = await this.prisma.order.update({
     where: { id: orderId },
     data: { status },
     include: { items: true },
   });
+
+  // Log to status history
+  await this.prisma.orderStatusHistory.create({
+    data: {
+      orderId: order.id,
+      status: order.status,
+    },
+  });
+  
 
   const user = await this.prisma.user.findUnique({
     where: { id: order.userId },
@@ -26,6 +41,7 @@ export class OrderService {
 
   return order;
 }
+
 
   async create(
     userId: number,
@@ -77,4 +93,10 @@ export class OrderService {
   findAll() {
     return this.prisma.order.findMany({ include: { items: true } });
   }
+  findStatusHistory(orderId: number) {
+  return this.prisma.orderStatusHistory.findMany({
+    where: { orderId },
+    orderBy: { changedAt: 'asc' },
+  });
+}
 }
