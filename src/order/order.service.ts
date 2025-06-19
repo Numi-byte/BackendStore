@@ -11,7 +11,7 @@ export class OrderService {
 
 
   async updateStatus(orderId: number, status: string) {
-  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered'];
+  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
   if (!allowedStatuses.includes(status)) {
     throw new BadRequestException(`Invalid status: ${status}`);
   }
