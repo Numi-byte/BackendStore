@@ -146,7 +146,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(to: string, token: string) {
-    const link = `http://your-frontend.com/reset-password?token=${token}`;
+    const link = `http://localhost:5173/reset-password?token=${token}`;
     await this.transporter.sendMail({
       from: '"Grande&Co" <no-reply@grandeandco.com>',
       to,
