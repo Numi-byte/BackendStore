@@ -16,11 +16,11 @@ export class OrderService {
     throw new BadRequestException(`Invalid status: ${status}`);
   }
 
-  const order = await this.prisma.order.update({
-    where: { id: orderId },
-    data: { status },
-    include: { items: true },
-  });
+const order = await this.prisma.order.update({
+  where: { id: orderId },
+  data: { status },
+  include: { items: { include: { product: true } } },   // ← add
+});
 
   // Log to status history
   await this.prisma.orderStatusHistory.create({
@@ -65,14 +65,10 @@ export class OrderService {
       })
     );
 
-    const order = await this.prisma.order.create({
-      data: {
-        userId,
-        total,
-        items: { create: orderItems },
-      },
-      include: { items: true },
-    });
+const order = await this.prisma.order.create({
+  data: { userId, total, items: { create: orderItems } },
+  include: { items: { include: { product: true } } },   // ← add product
+});
 
     // fetch user email
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
