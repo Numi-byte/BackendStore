@@ -299,6 +299,28 @@ async sendOrderStatusUpdateEmail(to: string, order: any) {
   });
 }
 
+async sendContactNotification(message: {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: Date;
+}) {
+  await this.transporter.sendMail({
+    from: '"Grande&Co Website" <no-reply@grandeandco.com>',
+    to: 'support@grandeandco.com', // CHANGE TO YOUR SUPPORT EMAIL
+    subject: `New contact message #${message.id}`,
+    html: `
+      <p><strong>Name:</strong> ${message.name}</p>
+      <p><strong>Email:</strong> ${message.email}</p>
+      <p><strong>Message:</strong></p>
+      <p>${message.message}</p>
+      <hr/>
+      <p style="font-size:0.8rem;color:#999;">Received: ${new Date(message.createdAt).toLocaleString()}</p>
+    `,
+  });
+}
+
 async sendPasswordResetEmail(to: string, token: string) {
   const link = `http://localhost:5173/reset-password?token=${token}`;
 

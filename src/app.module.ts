@@ -9,6 +9,7 @@ import { SubscriberModule } from './subscriber/subscriber.module';
 import { AdminModule } from './admin/admin.module';
 import { MailService } from './mail/mail.service';
 import { CustomerModule } from './customer/customer.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { CustomerModule } from './customer/customer.module';
     OrderModule,
     SubscriberModule,
     AdminModule,
-    CustomerModule
+    CustomerModule,
+    ContactModule
   ],
   providers: [PrismaService, MailService],
 })
