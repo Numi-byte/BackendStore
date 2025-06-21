@@ -142,7 +142,7 @@ export class MailService {
         {
           filename: 'logo.png',
           content: logoContent,
-          cid: 'logoGrandeCo', // match the img src="cid:logoGrandeCo"
+          cid: 'logoGrandeCo', 
         },
       ],
     });
