@@ -3,6 +3,7 @@ import * as nodemailer from 'nodemailer';
 import PDFDocument = require('pdfkit');
 import { WritableStreamBuffer } from 'stream-buffers';
 import * as path from 'path';
+import * as fs from 'fs';
 
 /* ---------- brand palette ---------- */
 const GOLD = '#d4af37';
@@ -102,56 +103,246 @@ export class MailService {
     });
   }
 
-  /* ---------- public helpers ---------- */
   async sendWelcomeEmail(to: string) {
+    const logoPath = path.join(__dirname, '../../assets/logo.png');
+    const logoContent = fs.readFileSync(logoPath);
+
     await this.transporter.sendMail({
       from: '"Grande&Co" <no-reply@grandeandco.com>',
       to,
       subject: 'Welcome to Grande&Co!',
-      html: '<p>Thank you for joining our luxury furniture world ✨</p>',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+          <div style="text-align:center;margin-bottom:1.5rem;">
+            <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+          </div>
+
+          <h2 style="color:#333333;text-align:center;">Welcome to <span style="color:#0071e3;">Grande&Co</span>!</h2>
+
+          <p style="font-size:1rem;color:#555555;text-align:center;line-height:1.6;margin:1rem 0 2rem;">
+            Thank you for joining our world of timeless luxury furniture and elegant interiors.
+            <br>
+            We’re thrilled to have you with us.
+          </p>
+
+          <div style="text-align:center;margin:2rem 0;">
+            <a href="https://grandeandco.com/products" style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+              Explore Our Collection
+            </a>
+          </div>
+
+          <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
+
+          <p style="font-size:0.85rem;color:#999;text-align:center;">
+            Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+          </p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: 'logo.png',
+          content: logoContent,
+          cid: 'logoGrandeCo', // match the img src="cid:logoGrandeCo"
+        },
+      ],
     });
   }
 
-  async sendNewsletterWelcomeEmail(to: string) {
+
+async sendNewsletterWelcomeEmail(to: string) {
+    const logoPath = path.join(__dirname, '../../assets/logo.png');
+    const logoContent = fs.readFileSync(logoPath);
+
     await this.transporter.sendMail({
       from: '"Grande&Co" <no-reply@grandeandco.com>',
       to,
-      subject: 'Newsletter subscription confirmed!',
-      html: '<p>You will now receive exclusive deals &amp; stories.</p>',
+      subject: 'Welcome to the Grande&Co Insider Circle!',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+          <div style="text-align:center;margin-bottom:1.5rem;">
+            <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+          </div>
+
+          <h2 style="color:#333;text-align:center;">Thank you for subscribing</h2>
+
+          <p style="font-size:1rem;color:#555;line-height:1.6;margin:1rem 0 2rem;text-align:center;">
+            You are now part of the Grande&Co Insider Circle.<br>
+            Expect curated inspiration, exclusive offers, and behind-the-scenes stories from our world of timeless luxury.
+          </p>
+
+          <div style="text-align:center;margin:2rem 0;">
+            <a href="https://grandeandco.com/collection" style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+              Explore Collection
+            </a>
+          </div>
+
+          <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
+
+          <p style="font-size:0.85rem;color:#999;text-align:center;">
+            Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+          </p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: 'logo.png',
+          content: logoContent,
+          cid: 'logoGrandeCo',
+        },
+      ],
     });
   }
 
-  /* order confirmation + invoice */
-  async sendOrderConfirmation(to: string, order: any) {
-    const pdf = await this.buildInvoice(order);
-    await this.transporter.sendMail({
-      from: '"Grande&Co" <no-reply@grandeandco.com>',
-      to,
-      subject: `Order #${order.id} confirmation`,
-      html: `<p>Your order <strong>#${order.id}</strong> has been received.</p><p>Invoice attached.</p>`,
-      attachments: [{ filename: `invoice-${order.id}.pdf`, content: pdf }],
-    });
-  }
+async sendOrderConfirmation(to: string, order: any) {
+  const pdf = await this.buildInvoice(order);
 
-  /* status update + refreshed invoice */
-  async sendOrderStatusUpdateEmail(to: string, order: any) {
-    const pdf = await this.buildInvoice(order);
-    await this.transporter.sendMail({
-      from: '"Grande&Co" <no-reply@grandeandco.com>',
-      to,
-      subject: `Order #${order.id} is now ${order.status}`,
-      html: `<p>Status updated to <strong>${order.status}</strong>. Invoice attached.</p>`,
-      attachments: [{ filename: `invoice-${order.id}.pdf`, content: pdf }],
-    });
-  }
+  await this.transporter.sendMail({
+    from: '"Grande&Co" <no-reply@grandeandco.com>',
+    to,
+    subject: `Your Grande&Co order #${order.id} confirmation`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+        </div>
 
-  async sendPasswordResetEmail(to: string, token: string) {
-    const link = `http://localhost:5173/reset-password?token=${token}`;
-    await this.transporter.sendMail({
-      from: '"Grande&Co" <no-reply@grandeandco.com>',
-      to,
-      subject: 'Reset your password',
-      html: `<p>Click <a href="${link}">here</a> to reset your password.</p>`,
-    });
-  }
+        <h2 style="color:#333;text-align:center;margin-bottom:1rem;">Thank you for your purchase!</h2>
+
+        <p style="font-size:1rem;color:#555;line-height:1.6;text-align:center;">
+          Your order <strong>#${order.id}</strong> has been successfully placed.
+        </p>
+
+        <p style="font-size:1rem;color:#555;line-height:1.6;text-align:center;">
+          An invoice is attached for your records.
+        </p>
+
+        <div style="text-align:center;margin:2rem 0;">
+          <a href="http://localhost:5173/account/orders" 
+             style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+            View your order
+          </a>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
+
+        <p style="font-size:0.85rem;color:#999;text-align:center;">
+          Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+        </p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `invoice-${order.id}.pdf`,
+        content: pdf,
+      },
+      {
+        filename: 'logo.png',
+        content: require('fs').readFileSync(require('path').join(__dirname, '../../assets/logo.png')),
+        cid: 'logoGrandeCo',
+      },
+    ],
+  });
+}
+
+async sendOrderStatusUpdateEmail(to: string, order: any) {
+  const pdf = await this.buildInvoice(order);
+
+  await this.transporter.sendMail({
+    from: '"Grande&Co" <no-reply@grandeandco.com>',
+    to,
+    subject: `Your Grande&Co order #${order.id} — now ${order.status.toUpperCase()}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+        </div>
+
+        <h2 style="color:#333;text-align:center;margin-bottom:1rem;">Order Update</h2>
+
+        <p style="font-size:1rem;color:#555;line-height:1.6;text-align:center;">
+          Your order <strong>#${order.id}</strong> status has been updated to:
+        </p>
+
+        <p style="font-size:1.2rem;font-weight:bold;color:#0071e3;text-align:center;margin:1rem 0;">
+          ${order.status.toUpperCase()}
+        </p>
+
+        <div style="text-align:center;margin:2rem 0;">
+          <a href="http://localhost:5173/account/orders" 
+             style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+            View your order
+          </a>
+        </div>
+
+        <p style="font-size:0.9rem;color:#777;text-align:center;margin-top:2rem;">
+          We’ve attached your updated invoice for your records.
+        </p>
+
+        <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
+
+        <p style="font-size:0.85rem;color:#999;text-align:center;">
+          Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+        </p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `invoice-${order.id}.pdf`,
+        content: pdf,
+      },
+      {
+        filename: 'logo.png',
+        content: require('fs').readFileSync(require('path').join(__dirname, '../../assets/logo.png')),
+        cid: 'logoGrandeCo',
+      },
+    ],
+  });
+}
+
+async sendPasswordResetEmail(to: string, token: string) {
+  const link = `http://localhost:5173/reset-password?token=${token}`;
+
+  await this.transporter.sendMail({
+    from: '"Grande&Co" <no-reply@grandeandco.com>',
+    to,
+    subject: 'Reset your password — Grande&Co',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+        </div>
+
+        <h2 style="color:#333;text-align:center;margin-bottom:1rem;">Password Reset Request</h2>
+
+        <p style="font-size:1rem;color:#555;line-height:1.6;text-align:center;">
+          We received a request to reset your password.
+        </p>
+
+        <div style="text-align:center;margin:2rem 0;">
+          <a href="${link}"
+             style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+            Reset Password
+          </a>
+        </div>
+
+        <p style="font-size:0.95rem;color:#777;text-align:center;">
+          If you did not request this, you can safely ignore this email.
+        </p>
+
+        <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
+
+        <p style="font-size:0.85rem;color:#999;text-align:center;">
+          Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+        </p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: 'logo.png',
+        content: require('fs').readFileSync(require('path').join(__dirname, '../../assets/logo.png')),
+        cid: 'logoGrandeCo',
+      },
+    ],
+  });
+}
 }
