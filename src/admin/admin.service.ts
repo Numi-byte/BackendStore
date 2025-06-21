@@ -35,33 +35,38 @@ async getTopProductsSold(limit = 5) {
     take: limit,
   });
 
-  // Join product details
   const productIds = aggregates.map(a => a.productId);
   const products = await this.prisma.product.findMany({
     where: { id: { in: productIds } },
+    select: { id: true, title: true, price: true }
   });
 
   return aggregates.map(a => {
     const product = products.find(p => p.id === a.productId);
+    const units = a._sum.quantity ?? 0;
+    const price = product?.price ?? 0;
     return {
       productId: a.productId,
       title: product?.title || 'Unknown',
-      totalSold: a._sum.quantity,
+      units,
+      total: units * price,   // ✅ compute total revenue
     };
   });
 }
 
+
 /** Revenue summary (sum of orders total) */
 async getRevenueSummary() {
   const allOrders = await this.prisma.order.findMany({
-    select: { total: true, createdAt: true },
+    select: { total: true },
   });
 
-  const totalRevenue = allOrders.reduce((sum, o) => sum + o.total, 0);
+  const total = allOrders.reduce((sum, o) => sum + o.total, 0);
+  const avgOrder = allOrders.length ? total / allOrders.length : 0;
 
   return {
-    totalRevenue,
-    orderCount: allOrders.length,
+    total,
+    avgOrder,
   };
 }
 
