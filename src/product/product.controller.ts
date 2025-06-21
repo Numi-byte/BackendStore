@@ -1,4 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nestjs/common';
+// src/product/product.controller.ts
+import {
+  Controller, Get, Post, Body, Param, Delete, Put, Patch,
+  UseGuards
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -20,6 +24,8 @@ export class ProductController {
     return this.productService.findAll();
   }
 
+  
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productService.findOne(+id);
@@ -37,5 +43,21 @@ export class ProductController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productService.remove(+id);
+  }
+
+  // 🆕 ARCHIVE
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Patch(':id/archive')
+  archive(@Param('id') id: string) {
+    return this.productService.archive(+id);
+  }
+
+  // 🆕 UNARCHIVE
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Patch(':id/unarchive')
+  unarchive(@Param('id') id: string) {
+    return this.productService.unarchive(+id);
   }
 }
