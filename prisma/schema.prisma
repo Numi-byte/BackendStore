@@ -8,39 +8,41 @@ datasource db {
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
-  email          String    @unique
-  password       String
-  name           String
-  role           String    @default("buyer")
-  createdAt      DateTime  @default(now())
-  resetToken     String?   @unique
-  resetTokenExp  DateTime?
-  orders         Order[]
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password      String
+  name          String
+  role          String    @default("buyer")
+  createdAt     DateTime  @default(now())
+  resetToken    String?   @unique
+  resetTokenExp DateTime?
+  orders        Order[]
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   title       String
   description String
   price       Float
   stock       Int
   imageUrl    String
-  category    String    
-  createdAt   DateTime  @default(now())
+  category    String
+  createdAt   DateTime    @default(now())
   archived    Boolean     @default(false) // NEW FIELD
   orderItems  OrderItem[]
 }
 
 model Order {
-  id            Int                  @id @default(autoincrement())
-  user          User                 @relation(fields: [userId], references: [id])
-  userId        Int
-  total         Float
-  status        String               @default("pending")
-  createdAt     DateTime             @default(now())
-  items         OrderItem[]
-  statusHistory OrderStatusHistory[]
+  id              Int           @id @default(autoincrement())
+  user            User          @relation(fields: [userId], references: [id])
+  userId          Int
+  total           Float
+  status          String        @default("pending")
+  createdAt       DateTime      @default(now())
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+  shippingInfo    ShippingInfo? @relation(fields: [shippingInfoId], references: [id])
+  shippingInfoId  Int?          @unique
 }
 
 model OrderItem {
@@ -69,14 +71,14 @@ model OrderStatusHistory {
 }
 
 model visitor {
-  id         Int      @id @default(autoincrement())
-  visitorId  String
-  ip         String
-  country    String?
-  region     String?
-  city       String?
-  userAgent  String? 
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  visitorId String
+  ip        String
+  country   String?
+  region    String?
+  city      String?
+  userAgent String?
+  createdAt DateTime @default(now())
 }
 
 model ContactMessage {
@@ -85,4 +87,21 @@ model ContactMessage {
   email     String
   message   String
   createdAt DateTime @default(now())
+}
+
+model ShippingInfo {
+  id          Int     @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String
+  phone       String
+  address1    String
+  address2    String?
+  city        String
+  state       String?
+  postalCode  String
+  country     String
+  createdAt   DateTime @default(now())
+
+  order       Order?   @relation
 }

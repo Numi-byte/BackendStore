@@ -10,6 +10,7 @@ import { AdminModule } from './admin/admin.module';
 import { MailService } from './mail/mail.service';
 import { CustomerModule } from './customer/customer.module';
 import { ContactModule } from './contact/contact.module';
+import { ShippingInfoModule } from './shipping-info/shipping-info.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { ContactModule } from './contact/contact.module';
     SubscriberModule,
     AdminModule,
     CustomerModule,
-    ContactModule
+    ContactModule,
+    ShippingInfoModule
   ],
   providers: [PrismaService, MailService],
 })

@@ -9,47 +9,58 @@ export class OrderService {
     private mail: MailService,
   ) {}
 
-
   async updateStatus(orderId: number, status: string) {
-  const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
-  if (!allowedStatuses.includes(status)) {
-    throw new BadRequestException(`Invalid status: ${status}`);
+    const allowedStatuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
+    if (!allowedStatuses.includes(status)) {
+      throw new BadRequestException(`Invalid status: ${status}`);
+    }
+
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: { items: { include: { product: true } } },
+    });
+
+    await this.prisma.orderStatusHistory.create({
+      data: {
+        orderId: order.id,
+        status: order.status,
+      },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: order.userId },
+    });
+
+    if (user) {
+      await this.mail.sendOrderStatusUpdateEmail(user.email, order);
+    }
+
+    return order;
   }
-
-const order = await this.prisma.order.update({
-  where: { id: orderId },
-  data: { status },
-  include: { items: { include: { product: true } } },   // ← add
-});
-
-  // Log to status history
-  await this.prisma.orderStatusHistory.create({
-    data: {
-      orderId: order.id,
-      status: order.status,
-    },
-  });
-  
-
-  const user = await this.prisma.user.findUnique({
-    where: { id: order.userId },
-  });
-
-  if (user) {
-    await this.mail.sendOrderStatusUpdateEmail(user.email, order);
-  }
-
-  return order;
-}
-
 
   async create(
     userId: number,
-    items: { productId: number; quantity: number }[]
+    body: {
+      items: { productId: number; quantity: number }[];
+      shippingInfo: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        address1: string;
+        address2?: string;
+        city: string;
+        state?: string;
+        postalCode: string;
+        country: string;
+      };
+    }
   ) {
     let total = 0;
+
     const orderItems = await Promise.all(
-      items.map(async (item) => {
+      body.items.map(async (item) => {
         const product = await this.prisma.product.findUnique({
           where: { id: item.productId },
         });
@@ -65,16 +76,28 @@ const order = await this.prisma.order.update({
       })
     );
 
-const order = await this.prisma.order.create({
-  data: { userId, total, items: { create: orderItems } },
-  include: { items: { include: { product: true } } },   // ← add product
-});
+    const shipping = await this.prisma.shippingInfo.create({
+      data: {
+        ...body.shippingInfo,
+      },
+    });
 
-    // fetch user email
+    const order = await this.prisma.order.create({
+      data: {
+        userId,
+        total,
+        shippingInfoId: shipping.id,
+        items: { create: orderItems },
+      },
+      include: {
+        items: { include: { product: true } },
+        shippingInfo: true,
+      },
+    });
+
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException(`User ${userId} not found`);
 
-    // send email + invoice
     await this.mail.sendOrderConfirmation(user.email, {
       id: order.id,
       userId: order.userId,
@@ -89,10 +112,11 @@ const order = await this.prisma.order.create({
   findAll() {
     return this.prisma.order.findMany({ include: { items: true } });
   }
+
   findStatusHistory(orderId: number) {
-  return this.prisma.orderStatusHistory.findMany({
-    where: { orderId },
-    orderBy: { changedAt: 'asc' },
-  });
-}
+    return this.prisma.orderStatusHistory.findMany({
+      where: { orderId },
+      orderBy: { changedAt: 'asc' },
+    });
+  }
 }
