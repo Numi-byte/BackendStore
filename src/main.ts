@@ -5,16 +5,26 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS to allow frontend requests (adjust origin if needed)
+  /* 1️⃣  Allowed origins */
+  const allowedOrigins = [
+    'http://localhost:5173',                        // local dev
+    'https://furniture-frontend-virid.vercel.app/',             // Vercel preview/prod
+    'https://www.your-domain.com',                  // custom domain (if any)
+  ];
+
+  /* 2️⃣  CORS */
   app.enableCors({
-    origin: 'http://localhost:5173',  // Your React/Vite frontend URL
-    credentials: true,                // Allow cookies / auth headers
+    origin: (origin, cb) => {
+      // allow REST tools & same‑origin requests with no `Origin` header
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error(`CORS blocked for origin ${origin}`), false);
+    },
+    credentials: true,
   });
 
-  // Parse cookies
   app.use(cookieParser());
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000, '0.0.0.0');
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 
