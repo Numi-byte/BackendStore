@@ -41,7 +41,7 @@ model Order {
   createdAt       DateTime      @default(now())
   items           OrderItem[]
   statusHistory   OrderStatusHistory[]
-  shippingInfo    ShippingInfo? @relation(fields: [shippingInfoId], references: [id])
+  shippingInfo    ShippingInfo? @relation("OrderShipping")
   shippingInfoId  Int?          @unique
 }
 
@@ -103,5 +103,6 @@ model ShippingInfo {
   country     String
   createdAt   DateTime @default(now())
 
-  order       Order?   @relation
+  order       Order?   @relation("OrderShipping", fields: [orderId], references: [id])
+  orderId     Int?     @unique
 }
