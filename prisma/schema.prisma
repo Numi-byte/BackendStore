@@ -41,7 +41,8 @@ model Order {
   createdAt       DateTime      @default(now())
   items           OrderItem[]
   statusHistory   OrderStatusHistory[]
-  shippingInfo    ShippingInfo? @relation("OrderShipping")
+  shippingInfo    ShippingInfo? @relation(fields: [shippingInfoId], references: [id])
+  shippingInfoId  Int?          @unique
 }
 
 model OrderItem {
@@ -89,7 +90,7 @@ model ContactMessage {
 }
 
 model ShippingInfo {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   firstName   String
   lastName    String
   email       String
@@ -102,6 +103,5 @@ model ShippingInfo {
   country     String
   createdAt   DateTime @default(now())
 
-  order       Order?   @relation("OrderShipping", fields: [orderId], references: [id])
-  orderId     Int?     @unique
+  order       Order?   @relation
 }
