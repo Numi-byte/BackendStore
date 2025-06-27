@@ -42,7 +42,6 @@ model Order {
   items           OrderItem[]
   statusHistory   OrderStatusHistory[]
   shippingInfo    ShippingInfo? @relation("OrderShipping")
-  shippingInfoId  Int?          @unique
 }
 
 model OrderItem {
@@ -90,7 +89,7 @@ model ContactMessage {
 }
 
 model ShippingInfo {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   firstName   String
   lastName    String
   email       String
