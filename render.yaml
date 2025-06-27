@@ -1,0 +1,6 @@
+buildCommand: |
+  npx prisma generate
+  npm install
+  npm run build
+
+startCommand: npm run start:prod
