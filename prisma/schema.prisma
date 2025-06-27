@@ -41,7 +41,7 @@ model Order {
   createdAt       DateTime      @default(now())
   items           OrderItem[]
   statusHistory   OrderStatusHistory[]
-  shippingInfo    shippingInfo @relation(fields: [shippingInfoId], references: [id])
+  shippingInfo    ShippingInfo? @relation(fields: [shippingInfoId], references: [id])
   shippingInfoId  Int?          @unique
 }
 
@@ -74,10 +74,10 @@ model visitor {
   id        Int      @id @default(autoincrement())
   visitorId String
   ip        String
-  country   String
-  region    String
-  city      String
-  userAgent String
+  country   String?
+  region    String?
+  city      String?
+  userAgent String?
   createdAt DateTime @default(now())
 }
 
@@ -89,19 +89,19 @@ model ContactMessage {
   createdAt DateTime @default(now())
 }
 
-model shippingInfo {
+model ShippingInfo {
   id          Int     @id @default(autoincrement())
   firstName   String
   lastName    String
   email       String
   phone       String
   address1    String
-  address2    String
+  address2    String?
   city        String
-  state       String
+  state       String?
   postalCode  String
   country     String
   createdAt   DateTime @default(now())
 
-  order       Order   @relation
+  order       Order?   @relation
 }
