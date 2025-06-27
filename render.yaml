@@ -1,6 +1,16 @@
-buildCommand: |
-  npx prisma generate
-  npm install
-  npm run build
-
-startCommand: npm run start:prod
+services:
+  - type: web
+    name: backendstore
+    env: node
+    buildCommand: |
+      prisma generate
+      npm install
+      npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: CORS_ORIGINS
+        value: "https://furniture-frontend-virid.vercel.app,http://localhost:5173"
