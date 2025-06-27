@@ -5,17 +5,23 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  /* 1️⃣  Allowed origins */
-  const allowedOrigins = [
-    'http://localhost:5173',                        // local dev
-    'https://furniture-frontend-virid.vercel.app/',             // Vercel preview/prod
-    'https://www.your-domain.com',                  // custom domain (if any)
-  ];
+  /* 1️⃣  Allowed origins (env or fallback list) */
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .filter(Boolean)
+    .map(o => o.trim());
+
+  if (allowedOrigins.length === 0) {
+    allowedOrigins.push(
+      'http://localhost:5173',
+      'https://furniture-frontend-virid.vercel.app',   // ← no trailing slash
+    );
+  }
 
   /* 2️⃣  CORS */
   app.enableCors({
     origin: (origin, cb) => {
-      // allow REST tools & same‑origin requests with no `Origin` header
+      // allow REST clients and same‑origin requests with no Origin header
       if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
       return cb(new Error(`CORS blocked for origin ${origin}`), false);
     },
