@@ -4,20 +4,34 @@ import PDFDocument = require('pdfkit');
 import { WritableStreamBuffer } from 'stream-buffers';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as escapeHtml from 'escape-html'; 
 
 /* ---------- brand palette ---------- */
+type Mailbox = 'noreply' | 'support' | 'sales';
 const GOLD = '#d4af37';
 
 @Injectable()
 export class MailService {
-  private transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-      user: 'rosalee.west@ethereal.email',
-      pass: 'szurCd97MJmCgTtaDH',
-    },
-  });
+  /** Cache transporters per mailbox */
+  private transportCache = new Map<Mailbox, nodemailer.Transporter>();
+
+  /** Build (or reuse) a transporter for the requested mailbox */
+  private getTransporter(box: Mailbox): nodemailer.Transporter {
+    if (this.transportCache.has(box)) return this.transportCache.get(box)!;
+
+    const user = process.env[`MAIL_${box.toUpperCase()}_USER`];
+    const pass = process.env[`MAIL_${box.toUpperCase()}_PASS`];
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.MAIL_HOST,
+      port: Number(process.env.MAIL_PORT),
+      secure: process.env.MAIL_SECURE === 'true',
+      auth: { user, pass },
+    });
+
+    this.transportCache.set(box, transporter);
+    return transporter;
+  }
 
   /* ────────────────────────────────── */
   /** Build an A4 invoice PDF and return it as a Buffer */
@@ -33,7 +47,7 @@ export class MailService {
     doc
       .fillColor(GOLD)
       .fontSize(20)
-      .text('Grande&Co', 200, 50)
+      .text('Casa Neuvo', 200, 50)
       .fontSize(10)
       .fillColor('#555555')
       .text('Luxury Furnishings Inc.', 200, 75)
@@ -89,7 +103,7 @@ export class MailService {
       .fontSize(8)
       .fillColor('#777')
       .text(
-        'Thank you for shopping with Grande&Co · Returns accepted within 30 days',
+        'Thank you for shopping with Casa Neuvo · Returns accepted within 7 days',
         50,
         760,
         { align: 'center', width: 500 },
@@ -104,20 +118,21 @@ export class MailService {
   }
 
   async sendWelcomeEmail(to: string) {
+    const transporter = this.getTransporter('noreply');
     const logoPath = path.join(__dirname, '../../assets/logo.png');
     const logoContent = fs.readFileSync(logoPath);
 
-    await this.transporter.sendMail({
-      from: '"Grande&Co" <no-reply@grandeandco.com>',
+    await transporter.sendMail({
+      from: `"Casa Neuvo" <${process.env.MAIL_NOREPLY_USER}>`,
       to,
-      subject: 'Welcome to Grande&Co!',
+      subject: 'Welcome to Casa Neuvo!',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
           <div style="text-align:center;margin-bottom:1.5rem;">
-            <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+            <img src="cid:logoGrandeCo" alt="Casa Neuvo" style="width:120px;height:auto;">
           </div>
 
-          <h2 style="color:#333333;text-align:center;">Welcome to <span style="color:#0071e3;">Grande&Co</span>!</h2>
+          <h2 style="color:#333333;text-align:center;">Welcome to <span style="color:#0071e3;">Casa Neuvo</span>!</h2>
 
           <p style="font-size:1rem;color:#555555;text-align:center;line-height:1.6;margin:1rem 0 2rem;">
             Thank you for joining our world of timeless luxury furniture and elegant interiors.
@@ -126,7 +141,7 @@ export class MailService {
           </p>
 
           <div style="text-align:center;margin:2rem 0;">
-            <a href="https://grandeandco.com/products" style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+            <a href="https://casaneuvo.com/products" style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
               Explore Our Collection
             </a>
           </div>
@@ -134,7 +149,7 @@ export class MailService {
           <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
 
           <p style="font-size:0.85rem;color:#999;text-align:center;">
-            Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+            Casa Neuvo · 123 Elegance Ave, Milano · <a href="https://casaneuvo.com" style="color:#999;">casaneuvo.com</a>
           </p>
         </div>
       `,
@@ -152,26 +167,27 @@ export class MailService {
 async sendNewsletterWelcomeEmail(to: string) {
     const logoPath = path.join(__dirname, '../../assets/logo.png');
     const logoContent = fs.readFileSync(logoPath);
+    const transporter = this.getTransporter('noreply');
 
-    await this.transporter.sendMail({
-      from: '"Grande&Co" <no-reply@grandeandco.com>',
+    await transporter.sendMail({
+      from: `"Casa Neuvo" <${process.env.MAIL_NOREPLY_USER}>`,
       to,
-      subject: 'Welcome to the Grande&Co Insider Circle!',
+      subject: 'Welcome to the Casa Neuvo Insider Circle!',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
           <div style="text-align:center;margin-bottom:1.5rem;">
-            <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+            <img src="cid:logoGrandeCo" alt="casa Neuvo" style="width:120px;height:auto;">
           </div>
 
           <h2 style="color:#333;text-align:center;">Thank you for subscribing</h2>
 
           <p style="font-size:1rem;color:#555;line-height:1.6;margin:1rem 0 2rem;text-align:center;">
-            You are now part of the Grande&Co Insider Circle.<br>
+            You are now part of the Casa Neuvo Insider Circle.<br>
             Expect curated inspiration, exclusive offers, and behind-the-scenes stories from our world of timeless luxury.
           </p>
 
           <div style="text-align:center;margin:2rem 0;">
-            <a href="https://grandeandco.com/collection" style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
+            <a href="https://casaneuvo.com/collection" style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
               Explore Collection
             </a>
           </div>
@@ -179,7 +195,7 @@ async sendNewsletterWelcomeEmail(to: string) {
           <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
 
           <p style="font-size:0.85rem;color:#999;text-align:center;">
-            Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+            Casa Neuvo · 123 Elegance Ave, Milano · <a href="https://casaneuvo.com" style="color:#999;">casaneuvo.com</a>
           </p>
         </div>
       `,
@@ -195,15 +211,16 @@ async sendNewsletterWelcomeEmail(to: string) {
 
 async sendOrderConfirmation(to: string, order: any) {
   const pdf = await this.buildInvoice(order);
+  const transporter = this.getTransporter('noreply');
 
-  await this.transporter.sendMail({
-    from: '"Grande&Co" <no-reply@grandeandco.com>',
+    await transporter.sendMail({
+    from: `"Casa Neuvo" <${process.env.MAIL_NOREPLY_USER}>`,
     to,
-    subject: `Your Grande&Co order #${order.id} confirmation`,
+    subject: `Your Casa Neuvo order #${order.id} confirmation`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
         <div style="text-align:center;margin-bottom:1.5rem;">
-          <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+          <img src="cid:logoGrandeCo" alt="Casa Neuvo" style="width:120px;height:auto;">
         </div>
 
         <h2 style="color:#333;text-align:center;margin-bottom:1rem;">Thank you for your purchase!</h2>
@@ -217,7 +234,7 @@ async sendOrderConfirmation(to: string, order: any) {
         </p>
 
         <div style="text-align:center;margin:2rem 0;">
-          <a href="http://localhost:5173/account/orders" 
+          <a href="http://casaneuvo.com/account/orders" 
              style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
             View your order
           </a>
@@ -226,7 +243,7 @@ async sendOrderConfirmation(to: string, order: any) {
         <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
 
         <p style="font-size:0.85rem;color:#999;text-align:center;">
-          Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+          Casa Neuvo · 123 Elegance Ave, Milano · <a href="https://casaneuvo.com" style="color:#999;">casaneuvo.com</a>
         </p>
       </div>
     `,
@@ -246,15 +263,16 @@ async sendOrderConfirmation(to: string, order: any) {
 
 async sendOrderStatusUpdateEmail(to: string, order: any) {
   const pdf = await this.buildInvoice(order);
+  const transporter = this.getTransporter('noreply');
 
-  await this.transporter.sendMail({
-    from: '"Grande&Co" <no-reply@grandeandco.com>',
+    await transporter.sendMail({
+    from: `"Casa Neuvo" <${process.env.MAIL_NOREPLY_USER}>`,
     to,
-    subject: `Your Grande&Co order #${order.id} — now ${order.status.toUpperCase()}`,
+    subject: `Your Casa Neuvo order #${order.id} — now ${order.status.toUpperCase()}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
         <div style="text-align:center;margin-bottom:1.5rem;">
-          <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+          <img src="cid:logoGrandeCo" alt="Casa Neuvo" style="width:120px;height:auto;">
         </div>
 
         <h2 style="color:#333;text-align:center;margin-bottom:1rem;">Order Update</h2>
@@ -268,7 +286,7 @@ async sendOrderStatusUpdateEmail(to: string, order: any) {
         </p>
 
         <div style="text-align:center;margin:2rem 0;">
-          <a href="http://localhost:5173/account/orders" 
+          <a href="http://casaneuvo/account/orders" 
              style="display:inline-block;padding:0.75rem 1.5rem;background:#0071e3;color:#fff;border-radius:4px;text-decoration:none;font-weight:bold;">
             View your order
           </a>
@@ -281,7 +299,7 @@ async sendOrderStatusUpdateEmail(to: string, order: any) {
         <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
 
         <p style="font-size:0.85rem;color:#999;text-align:center;">
-          Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+          Casa Neuvo · 123 Elegance Ave, Milano · <a href="https://casaneuvo.com" style="color:#999;">casaneuvo.com</a>
         </p>
       </div>
     `,
@@ -299,39 +317,73 @@ async sendOrderStatusUpdateEmail(to: string, order: any) {
   });
 }
 
-async sendContactNotification(message: {
-  id: number;
-  name: string;
-  email: string;
-  message: string;
-  createdAt: Date;
-}) {
-  await this.transporter.sendMail({
-    from: '"Grande&Co Website" <no-reply@grandeandco.com>',
-    to: 'support@grandeandco.com', // CHANGE TO YOUR SUPPORT EMAIL
-    subject: `New contact message #${message.id}`,
-    html: `
-      <p><strong>Name:</strong> ${message.name}</p>
-      <p><strong>Email:</strong> ${message.email}</p>
-      <p><strong>Message:</strong></p>
-      <p>${message.message}</p>
-      <hr/>
-      <p style="font-size:0.8rem;color:#999;">Received: ${new Date(message.createdAt).toLocaleString()}</p>
-    `,
-  });
-}
+  async sendContactNotification(msg: {
+    id: number;
+    name: string;
+    email: string;
+    message: string;
+    createdAt: Date;
+  }) {
+    const t = this.getTransporter('support');
+
+    /* ── 1. Sanitise user‑supplied fields ──────────────────── */
+    const name    = escapeHtml(msg.name);
+    const email   = escapeHtml(msg.email);
+    const message = escapeHtml(msg.message).replace(/\n/g, '<br/>');
+
+    /* ── 2. Build HTML & plain‑text bodies ─────────────────── */
+    const date = new Date(msg.createdAt).toLocaleString();
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:620px;padding:1.5rem;background:#fdfdfd;border:1px solid #e2e2e2;border-radius:8px;">
+        <h2 style="margin:0 0 0.5rem;color:#333;">📬 New contact request</h2>
+        <p style="margin:0 0 1.25rem;font-size:0.9rem;color:#777;">#${msg.id}&nbsp;•&nbsp;${date}</p>
+
+        <table style="font-size:1rem;margin-bottom:1rem;">
+          <tr><td style="font-weight:600;padding-right:8px;">Name:</td><td>${name}</td></tr>
+          <tr><td style="font-weight:600;">Email:</td><td>${email}</td></tr>
+        </table>
+
+        <hr style="border:none;border-top:1px solid #e5e5e5;margin:1rem 0;">
+
+        <p style="white-space:pre-line;margin:0;font-size:1rem;color:#333;">${message}</p>
+      </div>
+    `;
+
+    const text = `
+New contact request (#${msg.id})
+Date: ${date}
+
+Name : ${msg.name}
+Email: ${msg.email}
+
+Message:
+${msg.message}
+    `.trim();
+
+    /* ── 3. Send the email ─────────────────────────────────── */
+    await t.sendMail({
+      from: `"Casa Neuvo Website" <${process.env.MAIL_SUPPORT_USER}>`,
+      to:   process.env.MAIL_SUPPORT_USER,
+      replyTo: email,                       // so Support can answer with one click
+      subject: `New contact form #${msg.id} from ${name}`,
+      text,
+      html,
+    });
+  }
 
 async sendPasswordResetEmail(to: string, token: string) {
-  const link = `http://localhost:5173/reset-password?token=${token}`;
+  const link = `http://casaneuvo.com/reset-password?token=${token}`;
+  const transporter = this.getTransporter('support');
 
-  await this.transporter.sendMail({
-    from: '"Grande&Co" <no-reply@grandeandco.com>',
+    await transporter.sendMail({
+      from: `"Casa Neuvo Website" <${process.env.MAIL_NOREPLY_USER}>`,
     to,
-    subject: 'Reset your password — Grande&Co',
+    subject: 'Reset your password — Casa Neuvo',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;">
         <div style="text-align:center;margin-bottom:1.5rem;">
-          <img src="cid:logoGrandeCo" alt="Grande&Co" style="width:120px;height:auto;">
+          <img src="cid:logoGrandeCo" alt="Casa Neuvo" style="width:120px;height:auto;">
         </div>
 
         <h2 style="color:#333;text-align:center;margin-bottom:1rem;">Password Reset Request</h2>
@@ -354,7 +406,7 @@ async sendPasswordResetEmail(to: string, token: string) {
         <hr style="border:none;border-top:1px solid #ddd;margin:2rem 0;">
 
         <p style="font-size:0.85rem;color:#999;text-align:center;">
-          Grande&Co · 123 Elegance Ave, Milano · <a href="https://grandeandco.com" style="color:#999;">grandeandco.com</a>
+          Casa Neuvo · 123 Elegance Ave, Milano · <a href="https://casaneuvo.com" style="color:#999;">casaneuvo.com</a>
         </p>
       </div>
     `,
